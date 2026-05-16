@@ -51,103 +51,119 @@ export default function HeroSection() {
 
   useGSAP(
     () => {
-      // Subtle parallax: image zooms/translates slightly as hero scrolls out
-      gsap.to(".hero-slide-img", {
-        yPercent: 12,
-        scale: 1.08,
-        ease: "none",
-        scrollTrigger: {
-          trigger: ref.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 0.8,
-        },
-      });
+      if (!ref.current) return;
 
-      // Captions fade as you scroll past hero
-      gsap.to(".hero-content", {
-        opacity: 0,
-        y: -40,
+      // Drive --p from 0 to 1 over the first 100vh of scroll inside the hero.
+      // After that, the section's sticky child remains fullscreen until the
+      // parent's bottom passes viewport bottom — revealing the next section.
+      gsap.to(ref.current, {
+        "--p": 1,
         ease: "none",
         scrollTrigger: {
           trigger: ref.current,
           start: "top top",
-          end: "bottom top",
-          scrub: 0.5,
+          end: "+=100%", // 100% of trigger height = 200vh; expansion completes in first half
+          scrub: 0.3,
+          // markers: true, // uncomment for debugging
         },
       });
     },
     { scope: ref }
   );
 
-  const nextIdx = (idx + 1) % SLIDES.length;
   const current = SLIDES[idx];
-  const upcoming = SLIDES[nextIdx];
 
   return (
     <section
-      id="hero"
       ref={ref}
-      className="relative w-screen h-[100svh] overflow-hidden bg-ink text-white"
+      id="hero"
+      className="relative w-screen bg-ink text-white"
+      style={
+        {
+          height: "200svh",
+          // initial value for the scroll-driven CSS variable
+          ["--p" as string]: 0,
+        } as React.CSSProperties
+      }
     >
-      {SLIDES.map((s, i) => (
+      <div className="sticky top-0 h-svh w-screen overflow-hidden">
+        {/* Intro: fades out as the video expands */}
         <div
-          key={s.client + i}
-          className={[
-            "absolute inset-0 transition-opacity duration-1000 ease-out",
-            i === idx ? "opacity-100" : "opacity-0",
-          ].join(" ")}
+          className="hero-intro absolute inset-0 grid-padding flex items-center pointer-events-none"
+          style={
+            { opacity: "calc(1 - var(--p, 0) * 1.8)" } as React.CSSProperties
+          }
         >
-          <div className="hero-slide-img absolute inset-0 will-change-transform">
-            <Image
-              src={s.img}
-              alt={`${s.client} — ${s.project}`}
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover"
-            />
+          <div className="max-w-4xl">
+            <div className="text-[11px] tracking-[0.25em] uppercase text-white/50 mb-5">
+              Showreel 2026
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-[7rem] font-bold leading-[0.95] tracking-tight text-balance">
+              브랜드의 다음
+              <br />
+              장면을 설계합니다.
+            </h1>
+            <div className="mt-6 text-sm md:text-base text-white/60">
+              스크롤하면 영상이 펼쳐집니다 ↓
+            </div>
           </div>
-          <div className="absolute inset-0 bg-black/35" />
         </div>
-      ))}
 
-      <div className="hero-content">
-        {/* Top-right thumbnail card */}
-        <div className="absolute top-24 right-5 md:right-10 lg:right-20 z-10 group cursor-pointer w-44 md:w-56">
-          <button
-            onClick={next}
-            className="block w-full text-left"
-            aria-label="Next slide"
-          >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
+        {/* Expanding video/image frame.
+            Top-right small (initial) → fullscreen as --p goes 0 → 1 */}
+        <div
+          className="hero-frame absolute overflow-hidden bg-ink will-change-[width,height,top,right]"
+          style={
+            {
+              top: "calc(72px * (1 - var(--p, 0)))",
+              right: "calc(32px * (1 - var(--p, 0)))",
+              width: "calc(32vw + (100vw - 32vw) * var(--p, 0))",
+              height: "calc(22vh + (100svh - 22vh) * var(--p, 0))",
+              borderRadius: "calc(8px * (1 - var(--p, 0)))",
+            } as React.CSSProperties
+          }
+        >
+          {SLIDES.map((s, i) => (
+            <div
+              key={s.client + i}
+              className={[
+                "absolute inset-0 transition-opacity duration-1000 ease-out",
+                i === idx ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            >
               <Image
-                src={upcoming.img}
-                alt={`Next: ${upcoming.client}`}
+                src={s.img}
+                alt={`${s.client} — ${s.project}`}
                 fill
-                sizes="(min-width:768px) 224px, 176px"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                priority={i === 0}
+                sizes="100vw"
+                className="object-cover"
               />
-              <div className="absolute inset-0 bg-black/20" />
+              <div className="absolute inset-0 bg-black/30" />
             </div>
-            <div className="mt-2">
-              <div className="text-[10px] tracking-[0.15em] uppercase text-white/70">
-                Next
-              </div>
-              <div className="text-xs font-semibold leading-tight mt-0.5">
-                {upcoming.client}
-              </div>
-              <div className="text-[11px] text-white/70 leading-tight">
-                {upcoming.project}
-              </div>
-            </div>
-          </button>
+          ))}
+
+          {/* Tiny "NEXT/PLAY" label inside the small thumbnail, fades on expansion */}
+          <div
+            className="absolute left-3 bottom-2 text-[10px] tracking-[0.18em] uppercase text-white/80 pointer-events-none"
+            style={
+              { opacity: "calc(1 - var(--p, 0) * 2.5)" } as React.CSSProperties
+            }
+          >
+            ▸ Showreel
+          </div>
         </div>
 
-        {/* Bottom-left caption */}
-        <div className="absolute left-5 md:left-10 lg:left-20 bottom-20 md:bottom-24 z-10">
+        {/* Bottom-left caption: visible only when fully expanded */}
+        <div
+          className="absolute left-5 md:left-10 lg:left-20 bottom-20 md:bottom-24 z-10"
+          style={
+            { opacity: "calc((var(--p, 0) - 0.78) * 5)" } as React.CSSProperties
+          }
+        >
           <div className="text-[11px] tracking-[0.2em] uppercase text-white/70">
-            {String(idx + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
+            {String(idx + 1).padStart(2, "0")} /{" "}
+            {String(SLIDES.length).padStart(2, "0")}
           </div>
           <div className="mt-2 text-base md:text-lg font-medium">
             {current.client}
@@ -161,12 +177,20 @@ export default function HeroSection() {
         <Link
           href="/work"
           className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-sm md:text-base font-medium tracking-wide hover:opacity-70 transition-opacity"
+          style={
+            { opacity: "calc((var(--p, 0) - 0.78) * 5)" } as React.CSSProperties
+          }
         >
           → View Our All Work
         </Link>
 
-        {/* Pagination dots */}
-        <div className="absolute bottom-8 right-5 md:right-10 lg:right-20 z-10 hidden md:flex gap-2">
+        {/* Bottom-right pagination dots */}
+        <div
+          className="absolute bottom-8 right-5 md:right-10 lg:right-20 z-10 hidden md:flex gap-2"
+          style={
+            { opacity: "calc((var(--p, 0) - 0.78) * 5)" } as React.CSSProperties
+          }
+        >
           {SLIDES.map((_, i) => (
             <button
               key={i}
@@ -174,7 +198,9 @@ export default function HeroSection() {
               onClick={() => setIdx(i)}
               className={[
                 "h-0.5 transition-all",
-                i === idx ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70",
+                i === idx
+                  ? "w-8 bg-white"
+                  : "w-4 bg-white/40 hover:bg-white/70",
               ].join(" ")}
             />
           ))}
