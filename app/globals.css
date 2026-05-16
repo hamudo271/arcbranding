@@ -1,0 +1,76 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #101010;
+  --color-ink-2: #1a1a1a;
+  --color-ink-3: #222222;
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
+  --font-display: "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: #ffffff;
+    color: #000000;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: #000;
+    color: #fff;
+  }
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .reveal-line {
+    overflow: hidden;
+    display: inline-block;
+  }
+  .reveal-line > span {
+    display: inline-block;
+    will-change: transform;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+  .grid-padding {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  @media (min-width: 768px) {
+    .grid-padding {
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid-padding {
+      padding-left: 80px;
+      padding-right: 80px;
+    }
+  }
+}
